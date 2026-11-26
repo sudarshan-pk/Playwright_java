@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="suite" parallel="classes" thread-count="3">
+    <test name="test suite">
+        <classes>
+            <class name="tutorialspoint.MultipleBrowserTest"/>
+            <class name="tutorialspoint.AlertTest"/>
+        </classes>
+    </test>
+</suite>

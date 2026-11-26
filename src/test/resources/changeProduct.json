@@ -1,0 +1,10 @@
+{
+  "name": "Test New Product",
+  "data": {
+    "year": 2026,
+    "price": 209.99,
+    "CPU model": "New CPU Model",
+    "Hard disk size": "1 TB",
+    "color": "Black"
+  }
+}

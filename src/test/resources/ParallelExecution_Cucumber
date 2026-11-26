@@ -1,0 +1,61 @@
+
+
+public class RunCucumberTest extends AbstractTestNGCucumberTests {
+    @Override
+    @DataProvider(parallel = true)
+    public Object[][] scenarios() {
+        return super.scenarios();
+    }
+}
+
+
+That setting parallelizes test classes. For Cucumber scenarios returned by @DataProvider(parallel = true), set the data-provider thread count:
+
+<suite name="Playwright suite"
+       parallel="classes"
+       thread-count="4"
+       data-provider-thread-count="4">
+
+With the parallel Cucumber data provider, this allows up to 4 scenario cases at a time. Scenario Outline examples are separate cases, so they count individually. Ensure each scenario uses its own Playwright context and page.
+
+
+
+
+For Cucumber scenarios, @BeforeClass is the wrong lifecycle.
+It runs once for the TestNG class, creating one Page that could be shared by multiple scenarios. That can cause collisions when scenarios run in parallel. Your current method also keeps the BrowserContext in a local variable, so you can’t close it explicitly.
+Use Cucumber’s scenario hooks instead. Put these hooks in a Cucumber glue class, or in your step-definition class if you want its page field available directly to step methods:
+
+
+
+
+
+import com.microsoft.playwright.*;
+import io.cucumber.java.After;
+import io.cucumber.java.Before;
+
+public class BrowserHooks {
+    private Playwright playwright;
+    private Browser browser;
+    private BrowserContext context;
+    private Page page;
+
+    @Before
+    public void startScenario() {
+        playwright = Playwright.create();
+        browser = playwright.chromium().launch(
+            new BrowserType.LaunchOptions().setHeadless(false)
+        );
+        context = browser.newContext();
+        page = context.newPage();
+    }
+
+    @After
+    public void stopScenario() {
+        if (context != null) context.close();
+        if (browser != null) browser.close();
+        if (playwright != null) playwright.close();
+    }
+}
+
+
+Cucumber runs @Before and @After for each scenario, including each Scenario Outline example. Keep the fields non-static. If hooks and step definitions are in separate classes, use Cucumber’s dependency-injection support to share the scenario’s Page; ordinary fields in separate classes won’t be shared automatically.
